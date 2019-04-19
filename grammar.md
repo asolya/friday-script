@@ -2,7 +2,10 @@
 ROOT = STATEMENT_LIST
 STATEMENT_LIST = (STATEMENT ';')*
 STATEMENT = 'var' ID '=' VALUE
-| VALUE
-VALUE = NUM | ID '(' PARAMETERS ')' | ID
+          | VALUE
+VALUE = NUM
+      | ID '(' PARAMETERS ')'
+      | ID '=' VALUE
+      | ID
 PARAMETERS = VALUE(','VALUE)
 ```

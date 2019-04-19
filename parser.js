@@ -83,6 +83,19 @@ function parseValue(lexems) {
     return [true, value, lexems];
   }
 
+  if (lexems[0].type === "id" && lexems[1].type === "equal") {
+    const value = {
+      type: "variable_assigment",
+      name: lexems[0].value
+    };
+    const [status, param, rest] = parseValue(lexems.slice(2));
+    if (!status) {
+      throw new Error(`Expected value: ${JSON.stringify(lexems)}`);
+    }
+    value.value = param;
+    return [true, value, rest];
+  }
+
   if (lexems[0].type === "id") {
     return [true, { type: "id", value: lexems[0].value }, lexems.slice(1)];
   }

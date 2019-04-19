@@ -54,6 +54,10 @@ function evalValue(context, value) {
     return contextValue;
   }
 
+  if (value.type === "variable_assigment") {
+    return (context[value.name] = evalValue(context, value.value));
+  }
+
   throw new Error(`Unknown value type: ${JSON.stringify(value)}`);
 }
 

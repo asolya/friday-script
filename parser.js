@@ -11,11 +11,7 @@ function parseStatementList(lexems) {
     if (!status) {
       break;
     }
-
-    if (rest[0].type !== "semicolon") {
-      throw new Error(`Semicolon is expected a.k.a. JS. ${lexems}`);
-    }
-    lexems = rest.slice(1);
+    lexems = rest
     list.push(statement);
   }
   return [true, { type: "statement_list", list }, lexems];
@@ -37,10 +33,14 @@ function parseStatement(lexems) {
       throw new Error(`Expected value: ${lexems}`);
     }
 
+
+    if (rest[0].type !== "semicolon") {
+      throw new Error(`Expected semicolon after var declaration, got: ${lexems}`);
+    }
     return [
       true,
       { type: "variable_declaration", name: lexems[1].value, value },
-      rest
+      rest.slice(1)
     ];
   }
 
@@ -58,7 +58,16 @@ function parseStatement(lexems) {
     return [true, statements, rest.slice(1)];
   }
 
-  return parseValue(lexems);
+
+  const [status, value, rest] = parseValue(lexems);
+  if (!status) {
+    return [false, {}, lexems];
+  }
+
+  if (rest[0].type !== "semicolon") {
+    throw new Error(`Expected semicolon after var declaration, got: ${lexems}`);
+  }
+  return [true, value, rest.slice(1)]
 }
 
 function parseValue(lexems) {

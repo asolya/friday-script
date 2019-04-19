@@ -11,12 +11,31 @@ function evalStatementList(context, ast) {
 }
 
 function evalStatement(context, statement) {
-  if (statement.type === "variable_declaration") {
-    context[statement.name] = evalValue(context, statement.value);
-  } else if (statement.type === "statement_list") {
-    evalStatementList(context, statement);
-  } else {
-    return evalValue(context, statement);
+  switch (statement.type) {
+    case "variable_declaration": {
+      context[statement.name] = evalValue(context, statement.value);
+      break;
+    }
+    case "while": {
+      while (true) {
+        let condition = evalValue(context, statement.condition);
+        if (condition.type !== "boolean") {
+          throw new Error("Expected boolean in while condition");
+        }
+        if (!condition.value) {
+          break;
+        }
+        evalStatement(context, statement.statement);
+      }
+      break;
+    }
+    case "statement_list": {
+      evalStatementList(context, statement);
+      break;
+    }
+    default: {
+      return evalValue(context, statement);
+    }
   }
 }
 

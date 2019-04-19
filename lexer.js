@@ -73,6 +73,10 @@ function lexer(content) {
         lexems.push({ type: "var" });
         break;
       }
+      case "while": {
+        lexems.push({ type: "while" });
+        break;
+      }
       case "(": {
         lexems.push({ type: "open_bracket" });
         break;

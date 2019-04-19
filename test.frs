@@ -1,13 +1,10 @@
-var i = 10;
-log(42);
-{
-    {
-        log(i);
-        log(add(i, 42));
-        var g = add();
-    }
+var i1 = 1;
+var i2 = 1;
+while (lessThan(i1, 10)) {
+    var tmp = add(i1, i2);
+    i1 = i2;
+    i2 = tmp;
+    log(i2);
 }
-log(g);
-log(lessThan(1, 2));
-g = i;
-log(g);
+
+log(i2);

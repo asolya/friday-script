@@ -11,7 +11,7 @@ function parseStatementList(lexems) {
     if (!status) {
       break;
     }
-    lexems = rest
+    lexems = rest;
     list.push(statement);
   }
   return [true, { type: "statement_list", list }, lexems];
@@ -33,9 +33,10 @@ function parseStatement(lexems) {
       throw new Error(`Expected value: ${lexems}`);
     }
 
-
     if (rest[0].type !== "semicolon") {
-      throw new Error(`Expected semicolon after var declaration, got: ${lexems}`);
+      throw new Error(
+        `Expected semicolon after var declaration, got: ${lexems}`
+      );
     }
     return [
       true,
@@ -57,17 +58,55 @@ function parseStatement(lexems) {
 
     return [true, statements, rest.slice(1)];
   }
+  if (lexems[0].type === "while") {
+    if (lexems[1].type !== "open_bracket") {
+      throw new Error(
+        `Expected bracket after while, got: ${JSON.stringify(lexems)}`
+      );
+    }
+    let [status, condition, rest] = parseValue(lexems.slice(2));
+    if (!status) {
+      throw new Error(
+        `Error in parsing value: ${JSON.stringify(lexems.slice(1))}`
+      );
+    }
+    if (rest[0].type !== "close_bracket") {
+      throw new Error(`Expected a close bracket, got: ${JSON.stringify(rest)}`);
+    }
 
+    let whileStatement;
+    [status, whileStatement, rest] = parseStatement(rest.slice(1));
+    if (!status) {
+      throw new Error(
+        `Error in parsing while statement: ${JSON.stringify(rest)}`
+      );
+    }
 
-  const [status, value, rest] = parseValue(lexems);
-  if (!status) {
-    return [false, {}, lexems];
+    return [
+      true,
+      {
+        type: "while",
+        condition,
+        statement: whileStatement
+      },
+      rest
+    ];
   }
 
-  if (rest[0].type !== "semicolon") {
-    throw new Error(`Expected semicolon after var declaration, got: ${lexems}`);
+  // Value
+  {
+    const [status, value, rest] = parseValue(lexems);
+    if (!status) {
+      return [false, {}, lexems];
+    }
+
+    if (rest[0].type !== "semicolon") {
+      throw new Error(
+        `Expected semicolon after var declaration, got: ${lexems}`
+      );
+    }
+    return [true, value, rest.slice(1)];
   }
-  return [true, value, rest.slice(1)]
 }
 
 function parseValue(lexems) {

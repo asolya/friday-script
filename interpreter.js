@@ -32,6 +32,9 @@ function evalValue(context, value) {
       case "add": {
         return { type: "numeric", value: add(evaluatedParams) };
       }
+      case "lessThan": {
+        return { type: "boolean", value: lessThan(evaluatedParams) };
+      }
       default: {
         throw new Error(`Unknown function: ${value.func}`);
       }
@@ -63,6 +66,36 @@ function add(params) {
     }
     return accum + value.value;
   }, 0);
+}
+
+function lessThan(params) {
+  if (params.length < 2) {
+    throw new Error(
+      `lessThan function expects to get to parameters, but got ${JSON.stringify(
+        params
+      )}`
+    );
+  }
+
+  const [first, second] = params;
+
+  if (first.type !== "numeric") {
+    throw new Error(
+      `lessThan function expects to get to numeric parameters, but got first params as ${JSON.stringify(
+        first
+      )}`
+    );
+  }
+
+  if (second.type !== "numeric") {
+    throw new Error(
+      `lessThan function expects to get to numeric parameters, but got first params as ${JSON.stringify(
+        second
+      )}`
+    );
+  }
+
+  return first.value < second.value;
 }
 
 module.exports = run;

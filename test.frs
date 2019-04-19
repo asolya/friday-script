@@ -4,3 +4,4 @@ log(i);
 log(add(i, 42));
 var g = add();
 log(g);
+log(lessThan(1, 2));

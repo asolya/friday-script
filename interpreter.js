@@ -7,12 +7,14 @@ function run(ast) {
 }
 
 function evalStatementList(context, ast) {
-  ast.forEach(statement => evalStatement(context, statement));
+  ast.list.forEach(statement => evalStatement(context, statement));
 }
 
 function evalStatement(context, statement) {
   if (statement.type === "variable_declaration") {
     context[statement.name] = evalValue(context, statement.value);
+  } else if (statement.type === "statement_list") {
+    evalStatementList(context, statement);
   } else {
     return evalValue(context, statement);
   }

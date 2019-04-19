@@ -23,7 +23,7 @@ function isSpace(ch) {
 }
 
 function isSpecial(ch) {
-  return /^[.,\[\];=()]$/i.test(ch);
+  return /^[.,\[\];=(){}]$/i.test(ch);
 }
 
 function getType(ch) {
@@ -79,6 +79,14 @@ function lexer(content) {
       }
       case ")": {
         lexems.push({ type: "close_bracket" });
+        break;
+      }
+      case "{": {
+        lexems.push({ type: "open_brace" });
+        break;
+      }
+      case "}": {
+        lexems.push({ type: "close_brace" });
         break;
       }
       case "=": {

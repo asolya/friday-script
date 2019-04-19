@@ -18,7 +18,7 @@ function parseStatementList(lexems) {
     lexems = rest.slice(1);
     list.push(statement);
   }
-  return [true, list, lexems];
+  return [true, { type: "statement_list", list }, lexems];
 }
 
 function parseStatement(lexems) {
@@ -42,9 +42,23 @@ function parseStatement(lexems) {
       { type: "variable_declaration", name: lexems[1].value, value },
       rest
     ];
-  } else {
-    return parseValue(lexems);
   }
+
+  if (lexems[0].type === "open_brace") {
+    const [status, statements, rest] = parseStatementList(lexems.slice(1));
+    if (!status) {
+      throw new Error(
+        `Bad status of parseStatementList: ${JSON.stringify(lexems.slice(1))}`
+      );
+    }
+    if (rest[0].type !== "close_brace") {
+      throw new Error(`Expected a close brace, got: ${JSON.stringify(rest)}`);
+    }
+
+    return [true, statements, rest.slice(1)];
+  }
+
+  return parseValue(lexems);
 }
 
 function parseValue(lexems) {

@@ -83,6 +83,10 @@ function parseValue(lexems) {
     return [true, value, lexems];
   }
 
+  if (lexems[0].type === "id") {
+    return [true, { type: "id", value: lexems[0].value }, lexems.slice(1)];
+  }
+
   return [false, {}, lexems];
 }
 

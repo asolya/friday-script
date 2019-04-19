@@ -29,6 +29,9 @@ function evalValue(context, value) {
         console.log(JSON.stringify(evaluatedParams));
         return undefined;
       }
+      case "add": {
+        return { type: "numeric", value: add(evaluatedParams) };
+      }
       default: {
         throw new Error(`Unknown function: ${value.func}`);
       }
@@ -39,7 +42,27 @@ function evalValue(context, value) {
     return { type: "numeric", value: value.value };
   }
 
+  if (value.type === "id") {
+    const contextValue = context[value.value];
+    if (contextValue === undefined) {
+      throw new Error(`Missing variable: ${value.value}`);
+    }
+
+    return contextValue;
+  }
+
   throw new Error(`Unknown value type: ${JSON.stringify(value)}`);
+}
+
+function add(params) {
+  return params.reduce((accum, value) => {
+    if (value.type !== "numeric") {
+      throw new Error(
+        `Expected numeric type, but got: ${JSON.stringify(value)}`
+      );
+    }
+    return accum + value.value;
+  }, 0);
 }
 
 module.exports = run;

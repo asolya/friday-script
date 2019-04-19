@@ -1,2 +1,6 @@
 var i = 10;
 log(42);
+log(i);
+log(add(i, 42));
+var g = add();
+log(g);

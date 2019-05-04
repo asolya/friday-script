@@ -1,5 +1,5 @@
 function run(ast) {
-  const context = {};
+  const context = new Context();
 
   evalStatementList(context, ast);
 }
@@ -11,7 +11,8 @@ function evalStatementList(context, ast) {
 function evalStatement(context, statement) {
   switch (statement.type) {
     case "variable_declaration": {
-      context[statement.name] = evalValue(context, statement.value);
+      context.new(statement.name);
+      context.set(statement.name, evalValue(context, statement.value));
       break;
     }
     case "while": {
@@ -55,14 +56,15 @@ function evalValue(context, value) {
         return { type: "boolean", value: lessThan(evaluatedParams) };
       }
       default: {
-        const func = context[value.func];
-        console.log("context.vars: ", context);
+        const func = context.get(value.func);
         if (func === undefined) {
           throw new Error(`Unknown function: ${value.func}`);
         }
 
+        context = new Context(context);
         for (let i = 0; i < func.args.length; i++) {
-          context[func.args[i]] = evaluatedParams[i] || undefined;
+          context.new(func.args[i]);
+          context.set(func.args[i], evaluatedParams[i] || undefined);
         }
 
         return evalStatement(context, func.body);
@@ -75,7 +77,7 @@ function evalValue(context, value) {
   }
 
   if (value.type === "id") {
-    const contextValue = context[value.value];
+    const contextValue = context.get(value.value);
     if (contextValue === undefined) {
       throw new Error(`Missing variable: ${value.value}`);
     }
@@ -84,7 +86,9 @@ function evalValue(context, value) {
   }
 
   if (value.type === "variable_assigment") {
-    return (context[value.name] = evalValue(context, value.value));
+    const evaluated = evalValue(context, value.value);
+    context.set(value.name, evaluated);
+    return evaluated;
   }
 
   if (value.type === "function") {
@@ -134,5 +138,34 @@ function lessThan(params) {
 
   return first.value < second.value;
 }
+
+function Context(parent) {
+  const vars = {};
+
+  this.new = function (name) {
+    vars[name] = undefined;
+  };
+
+  this.get = function (name) {
+    if (vars.hasOwnProperty(name)) {
+      return vars[name];
+    }
+
+    if (parent !== undefined) {
+      return parent.get(name);
+    }
+  }
+
+  this.set = function (name, value) {
+    if (vars.hasOwnProperty(name)) {
+      vars[name] = value;
+    }
+
+    if (parent !== undefined) {
+      parent.set(name, value);
+    }
+  }
+}
+
 
 module.exports = run;

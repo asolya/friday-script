@@ -58,6 +58,7 @@ function parseStatement(lexems) {
 
     return [true, statements, rest.slice(1)];
   }
+
   if (lexems[0].type === "while") {
     if (lexems[1].type !== "open_bracket") {
       throw new Error(
@@ -91,6 +92,51 @@ function parseStatement(lexems) {
       },
       rest
     ];
+  }
+
+  if (lexems[0].type === "if") {
+    if (lexems[1].type !== "open_bracket") {
+      throw new Error(
+        `Expected bracket after if, got: ${JSON.stringify(lexems)}`
+      );
+    }
+    let [status, condition, rest] = parseValue(lexems.slice(2));
+    if (!status) {
+      throw new Error(
+        `Error in parsing value: ${JSON.stringify(lexems.slice(1))}`
+      );
+    }
+    if (rest[0].type !== "close_bracket") {
+      throw new Error(`Expected a close bracket, got: ${JSON.stringify(rest)}`);
+    }
+
+    let ifStatement;
+    [status, ifStatement, lexems] = parseStatement(rest.slice(1));
+    if (!status) {
+      throw new Error(
+        `Error in parsing if statement: ${JSON.stringify(lexems)}`
+      );
+    }
+
+    const ifAST = {
+      type: "if",
+      condition,
+      thenStatement: ifStatement,
+      elseStatement: undefined
+    };
+    if (rest[0].type == "else") {
+      const [status, elseStatement, rest] = parseStatement(lexems.slice(1));
+      if (!status) {
+        throw new Error(
+          `Error in parsing if statement: ${JSON.stringify(rest)}`
+        );
+      }
+
+      ifAST.elseStatement = elseStatement;
+      lexems = rest;
+    }
+
+    return [true, ifAST, lexems];
   }
 
   // Value

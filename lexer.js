@@ -77,6 +77,14 @@ function lexer(content) {
         lexems.push({ type: "while" });
         break;
       }
+      case "if": {
+        lexems.push({ type: "if" });
+        break;
+      }
+      case "else": {
+        lexems.push({ type: "else" });
+        break;
+      }
       case "function": {
         lexems.push({ type: "function" });
         break;

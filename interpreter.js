@@ -28,6 +28,19 @@ function evalStatement(context, statement) {
       }
       break;
     }
+    case "if": {
+      let condition = evalValue(context, statement.condition);
+      if (condition.type !== "boolean") {
+        throw new Error("Expected boolean in while condition");
+      }
+      if (condition.value) {
+        evalStatement(context, statement.thenStatement);
+      } else if (statement.elseStatement !== undefined) {
+        evalStatement(context, statement.elseStatement);
+      }
+
+      break;
+    }
     case "statement_list": {
       evalStatementList(context, statement);
       break;
@@ -142,11 +155,11 @@ function lessThan(params) {
 function Context(parent) {
   const vars = {};
 
-  this.new = function (name) {
+  this.new = function(name) {
     vars[name] = undefined;
   };
 
-  this.get = function (name) {
+  this.get = function(name) {
     if (vars.hasOwnProperty(name)) {
       return vars[name];
     }
@@ -154,9 +167,9 @@ function Context(parent) {
     if (parent !== undefined) {
       return parent.get(name);
     }
-  }
+  };
 
-  this.set = function (name, value) {
+  this.set = function(name, value) {
     if (vars.hasOwnProperty(name)) {
       vars[name] = value;
     }
@@ -164,8 +177,7 @@ function Context(parent) {
     if (parent !== undefined) {
       parent.set(name, value);
     }
-  }
+  };
 }
-
 
 module.exports = run;

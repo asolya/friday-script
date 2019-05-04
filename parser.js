@@ -113,6 +113,7 @@ function parseValue(lexems) {
   if (lexems[0].type === "num") {
     return [true, { type: "num", value: lexems[0].value }, lexems.slice(1)];
   }
+  // function call
   if (lexems[0].type === "id" && lexems[1].type === "open_bracket") {
     const value = {
       type: "call",
@@ -145,6 +146,7 @@ function parseValue(lexems) {
     return [true, value, lexems];
   }
 
+  // variable assignment
   if (lexems[0].type === "id" && lexems[1].type === "equal") {
     const value = {
       type: "variable_assigment",
@@ -160,6 +162,62 @@ function parseValue(lexems) {
 
   if (lexems[0].type === "id") {
     return [true, { type: "id", value: lexems[0].value }, lexems.slice(1)];
+  }
+
+  if (lexems[0].type === "function") {
+    if (lexems[1].type !== "open_bracket") {
+      throw new Error(
+        `Expected open bracket after function: ${JSON.stringify(lexems)}`
+      );
+    }
+
+    lexems = lexems.slice(2);
+    const args = [];
+
+    while (true) {
+      if (lexems[0].type !== "id") {
+        break;
+      }
+
+      args.push(lexems[0].value);
+
+      if (lexems[1].type !== "comma") {
+        lexems = lexems.slice(1);
+        break;
+      }
+
+      lexems = lexems.slice(2);
+    }
+
+    if (lexems[0].type !== "close_bracket") {
+      throw new Error(
+        `Expected a close bracket, got: ${JSON.stringify(lexems)}`
+      );
+    }
+
+    if (lexems[1].type !== "open_brace") {
+      throw new Error(`Expected a open brace, got: ${JSON.stringify(lexems)}`);
+    }
+
+    lexems = lexems.slice(2);
+
+    const [status, body, rest] = parseStatementList(lexems);
+    if (!status) {
+      throw new Error(
+        `Failed to parse function body: ${JSON.stringify(lexems)}`
+      );
+    }
+
+    const func = {
+      type: "function",
+      args,
+      body
+    };
+    if (rest[0].type !== "close_brace") {
+      throw new Error(`Expected a open brace, got: ${JSON.stringify(rest)}`);
+    }
+    lexems = rest.slice(1);
+    return [true, func, lexems];
   }
 
   return [false, {}, lexems];

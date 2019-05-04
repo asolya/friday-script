@@ -1,10 +1,13 @@
-var i1 = 1;
-var i2 = 1;
-while (lessThan(i1, 10)) {
-    var tmp = add(i1, i2);
-    i1 = i2;
-    i2 = tmp;
+var fibb = function(n) {
+    var i1 = 1;
+    var i2 = 1;
+    while (lessThan(i1, n)) {
+        var tmp = add(i1, i2);
+        i1 = i2;
+        i2 = tmp;
+        log(i2);
+    }
     log(i2);
-}
+};
 
-log(i2);
+fibb(10);

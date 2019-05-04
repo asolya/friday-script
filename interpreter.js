@@ -1,7 +1,5 @@
 function run(ast) {
-  const context = {
-    vars: {}
-  };
+  const context = {};
 
   evalStatementList(context, ast);
 }
@@ -57,7 +55,17 @@ function evalValue(context, value) {
         return { type: "boolean", value: lessThan(evaluatedParams) };
       }
       default: {
-        throw new Error(`Unknown function: ${value.func}`);
+        const func = context[value.func];
+        console.log("context.vars: ", context);
+        if (func === undefined) {
+          throw new Error(`Unknown function: ${value.func}`);
+        }
+
+        for (let i = 0; i < func.args.length; i++) {
+          context[func.args[i]] = evaluatedParams[i] || undefined;
+        }
+
+        return evalStatement(context, func.body);
       }
     }
   }
@@ -77,6 +85,10 @@ function evalValue(context, value) {
 
   if (value.type === "variable_assigment") {
     return (context[value.name] = evalValue(context, value.value));
+  }
+
+  if (value.type === "function") {
+    return { type: "function", args: value.args, body: value.body };
   }
 
   throw new Error(`Unknown value type: ${JSON.stringify(value)}`);

@@ -9,5 +9,7 @@ VALUE = NUM
       | ID '(' PARAMETERS ')'
       | ID '=' VALUE
       | ID
-PARAMETERS = VALUE(','VALUE)
+      | 'function' '(' IDS ')' '{' STATEMENT_LIST '}'
+PARAMETERS = | VALUE(','VALUE)*
+IDS = | ID(','ID)*
 ```

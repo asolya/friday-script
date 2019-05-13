@@ -1,14 +1,31 @@
 var i1 = 1;
 var i2 = 1;
 
-var fibb = function(n) {
-    if (lessThan(i1, n)) {
-        var tmp = add(i1, i2);
-        i1 = i2;
-        i2 = tmp;
-        log(i2);
-        fibb(n);
-    }
+var fibb = function() {
+    var a = 10;
+
+    i1 = function() {
+        a = add(a, 10);
+    };
+
+    i2 = function() {
+        log(a);
+    };
+
 };
 
-fibb(10);
+fibb();
+i2();
+i1();
+i2();
+
+var i11 = i1;
+var i22 = i2;
+
+fibb();
+i22();
+i1();
+i1();
+i1();
+i2();
+i22();

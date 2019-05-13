@@ -74,7 +74,7 @@ function evalValue(context, value) {
           throw new Error(`Unknown function: ${value.func}`);
         }
 
-        context = new Context(context);
+        context = new Context(func.context);
         for (let i = 0; i < func.args.length; i++) {
           context.new(func.args[i]);
           context.set(func.args[i], evaluatedParams[i] || undefined);
@@ -105,7 +105,7 @@ function evalValue(context, value) {
   }
 
   if (value.type === "function") {
-    return { type: "function", args: value.args, body: value.body };
+    return { type: "function", args: value.args, body: value.body, context };
   }
 
   throw new Error(`Unknown value type: ${JSON.stringify(value)}`);
@@ -155,11 +155,11 @@ function lessThan(params) {
 function Context(parent) {
   const vars = {};
 
-  this.new = function(name) {
+  this.new = function (name) {
     vars[name] = undefined;
   };
 
-  this.get = function(name) {
+  this.get = function (name) {
     if (vars.hasOwnProperty(name)) {
       return vars[name];
     }
@@ -169,7 +169,7 @@ function Context(parent) {
     }
   };
 
-  this.set = function(name, value) {
+  this.set = function (name, value) {
     if (vars.hasOwnProperty(name)) {
       vars[name] = value;
     }

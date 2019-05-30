@@ -118,6 +118,29 @@ function parseStatement(lexems) {
     return [true, ifAST, lexems];
   }
 
+  if (lexems[0].type === "return") {
+    const [status, value, rest] = parseValue(lexems.slice(1));
+    if (!status) {
+      throw new Error(
+        `Error in parsing while statement: ${JSON.stringify(rest)}`
+      );
+    }
+
+    if (rest[0].type !== "semicolon") {
+      throw new Error(
+        `Expected semicolon after var declaration, got: ${lexems}`
+      );
+    }
+    return [
+      true,
+      {
+        type: "return",
+        value
+      },
+      rest.slice(1)
+    ];
+  }
+
   // Value
   {
     const [status, value, rest] = parseValue(lexems);

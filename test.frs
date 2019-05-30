@@ -14,6 +14,7 @@ if (lessThan(i1, 6)) {
 var f = function(a, b) {
     log(a);
     log(b);
+    return 10;
 };
 
-f(1, 2);
+log(f(1, 2));

@@ -89,6 +89,10 @@ function lexer(content) {
         lexems.push({ type: "function" });
         break;
       }
+      case "return": {
+        lexems.push({ type: "return" });
+        break;
+      }
       case "(": {
         lexems.push({ type: "open_bracket" });
         break;

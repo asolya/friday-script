@@ -1,15 +1,6 @@
 var i1 = 1;
 var i2 = 1;
 
-while (lessThan(i1, 5)) {
-    i1 = add(i1, i2);
-    log(i1);
-}
-
-if (lessThan(i1, 6)) {
-    log(i1);
-}
-
 
 var f = function(a, b) {
     log(a);

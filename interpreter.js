@@ -45,6 +45,7 @@ function evalStatement(context, statement) {
       evalStatementList(context, statement);
       break;
     }
+
     default: {
       return evalValue(context, statement);
     }
@@ -56,7 +57,6 @@ function evalValue(context, value) {
     const evaluatedParams = value.params.map(param =>
       evalValue(context, param)
     );
-
     switch (value.func) {
       case "log": {
         console.log(JSON.stringify(evaluatedParams));
@@ -79,8 +79,14 @@ function evalValue(context, value) {
           context.new(func.args[i]);
           context.set(func.args[i], evaluatedParams[i] || undefined);
         }
-
-        return evalStatement(context, func.body);
+        try {
+          evalStatement(context, func.body);
+          return undefined;
+        } catch (e) {
+          if (e.name === HackyReturn.name) {
+            return e.value;
+          }
+        }
       }
     }
   }
@@ -106,6 +112,10 @@ function evalValue(context, value) {
 
   if (value.type === "function") {
     return { type: "function", args: value.args, body: value.body, context };
+  }
+
+  if (value.type === "return") {
+    throw new HackyReturn(evalValue(context, value.value));
   }
 
   throw new Error(`Unknown value type: ${JSON.stringify(value)}`);
@@ -178,6 +188,14 @@ function Context(parent) {
       parent.set(name, value);
     }
   };
+}
+
+class HackyReturn extends Error {
+  constructor(value, ...params) {
+    super(...params);
+    this.name = "HackyReturn";
+    this.value = value;
+  }
 }
 
 module.exports = run;

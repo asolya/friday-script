@@ -46,37 +46,24 @@ function parseStatement(lexems) {
   }
 
   if (lexems[0].type === "open_brace") {
-    const [status, statements, rest] = parseStatementList(lexems.slice(1));
-    if (!status) {
-      throw new Error(
-        `Bad status of parseStatementList: ${JSON.stringify(lexems.slice(1))}`
-      );
-    }
-    if (rest[0].type !== "close_brace") {
-      throw new Error(`Expected a close brace, got: ${JSON.stringify(rest)}`);
-    }
-
-    return [true, statements, rest.slice(1)];
+    return parseCombinatorBracket(
+      lexems,
+      "open_brace",
+      "close_brace",
+      parseStatementList
+    );
   }
 
   if (lexems[0].type === "while") {
-    if (lexems[1].type !== "open_bracket") {
-      throw new Error(
-        `Expected bracket after while, got: ${JSON.stringify(lexems)}`
-      );
-    }
-    let [status, condition, rest] = parseValue(lexems.slice(2));
-    if (!status) {
-      throw new Error(
-        `Error in parsing value: ${JSON.stringify(lexems.slice(1))}`
-      );
-    }
-    if (rest[0].type !== "close_bracket") {
-      throw new Error(`Expected a close bracket, got: ${JSON.stringify(rest)}`);
-    }
+    let [status, condition, rest] = parseCombinatorBracket(
+      lexems.slice(1),
+      "open_bracket",
+      "close_bracket",
+      parseValue
+    );
 
     let whileStatement;
-    [status, whileStatement, rest] = parseStatement(rest.slice(1));
+    [status, whileStatement, rest] = parseStatement(rest);
     if (!status) {
       throw new Error(
         `Error in parsing while statement: ${JSON.stringify(rest)}`
@@ -95,23 +82,15 @@ function parseStatement(lexems) {
   }
 
   if (lexems[0].type === "if") {
-    if (lexems[1].type !== "open_bracket") {
-      throw new Error(
-        `Expected bracket after if, got: ${JSON.stringify(lexems)}`
-      );
-    }
-    let [status, condition, rest] = parseValue(lexems.slice(2));
-    if (!status) {
-      throw new Error(
-        `Error in parsing value: ${JSON.stringify(lexems.slice(1))}`
-      );
-    }
-    if (rest[0].type !== "close_bracket") {
-      throw new Error(`Expected a close bracket, got: ${JSON.stringify(rest)}`);
-    }
+    let [status, condition, rest] = parseCombinatorBracket(
+      lexems.slice(1),
+      "open_bracket",
+      "close_bracket",
+      parseValue
+    );
 
     let ifStatement;
-    [status, ifStatement, lexems] = parseStatement(rest.slice(1));
+    [status, ifStatement, lexems] = parseStatement(rest);
     if (!status) {
       throw new Error(
         `Error in parsing if statement: ${JSON.stringify(lexems)}`
@@ -211,43 +190,33 @@ function parseValue(lexems) {
   }
 
   if (lexems[0].type === "function") {
-    if (lexems[1].type !== "open_bracket") {
+    lexems = lexems.slice(1);
+    let [status, args, rest] = parseCombinatorBracket(
+      lexems,
+      "open_bracket",
+      "close_bracket",
+      lexems =>
+        parseCombinatorList(lexems, "comma", lexems => {
+          if (lexems[0].type !== "id") {
+            return [false, undefined, undefined];
+          }
+          return [true, lexems[0].value, lexems.slice(1)];
+        })
+    );
+
+    if (!status) {
       throw new Error(
-        `Expected open bracket after function: ${JSON.stringify(lexems)}`
+        `Failed to parse function prototype: ${JSON.stringify(lexems)}`
       );
     }
 
-    lexems = lexems.slice(2);
-    const args = [];
-
-    while (true) {
-      if (lexems[0].type !== "id") {
-        break;
-      }
-
-      args.push(lexems[0].value);
-
-      if (lexems[1].type !== "comma") {
-        lexems = lexems.slice(1);
-        break;
-      }
-
-      lexems = lexems.slice(2);
-    }
-
-    if (lexems[0].type !== "close_bracket") {
-      throw new Error(
-        `Expected a close bracket, got: ${JSON.stringify(lexems)}`
-      );
-    }
-
-    if (lexems[1].type !== "open_brace") {
-      throw new Error(`Expected a open brace, got: ${JSON.stringify(lexems)}`);
-    }
-
-    lexems = lexems.slice(2);
-
-    const [status, body, rest] = parseStatementList(lexems);
+    let body;
+    [status, body, rest] = parseCombinatorBracket(
+      rest,
+      "open_brace",
+      "close_brace",
+      parseStatementList
+    );
     if (!status) {
       throw new Error(
         `Failed to parse function body: ${JSON.stringify(lexems)}`
@@ -259,14 +228,57 @@ function parseValue(lexems) {
       args,
       body
     };
-    if (rest[0].type !== "close_brace") {
-      throw new Error(`Expected a open brace, got: ${JSON.stringify(rest)}`);
-    }
-    lexems = rest.slice(1);
-    return [true, func, lexems];
+
+    return [true, func, rest];
   }
 
   return [false, {}, lexems];
+}
+
+function parseCombinatorBracket(lexems, open, close, bodyParser) {
+  if (lexems[0].type === open) {
+    const [status, statements, rest] = bodyParser(lexems.slice(1));
+    if (!status) {
+      throw new Error(
+        `Bad status of ${
+          bodyParser.name
+        } in parseCombinatorBracket, got: ${JSON.stringify(lexems.slice(1))}`
+      );
+    }
+    if (rest[0].type !== close) {
+      throw new Error(`Expected a ${close}, got: ${JSON.stringify(rest)}`);
+    }
+
+    return [true, statements, rest.slice(1)];
+  } else {
+    throw new Error(
+      `Expected to see ${open} in parseCombinatorBracket, got: ${JSON.stringify(
+        lexems
+      )}`
+    );
+  }
+}
+
+function parseCombinatorList(lexems, delimeter = "comma", itemParser) {
+  const items = [];
+
+  while (true) {
+    let [status, item, rest] = itemParser(lexems);
+    if (!status)
+      throw new Error(
+        `Bad status of ${
+          itemParser.name
+        } in parseCombinatorList, got: ${JSON.stringify(lexems.slice(1))}`
+      );
+
+    items.push(item);
+
+    if (rest[0].type !== delimeter) {
+      return [true, items, rest];
+    }
+
+    lexems = rest.slice(1);
+  }
 }
 
 module.exports = parser;

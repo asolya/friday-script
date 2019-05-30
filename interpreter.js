@@ -155,11 +155,11 @@ function lessThan(params) {
 function Context(parent) {
   const vars = {};
 
-  this.new = function (name) {
+  this.new = function(name) {
     vars[name] = undefined;
   };
 
-  this.get = function (name) {
+  this.get = function(name) {
     if (vars.hasOwnProperty(name)) {
       return vars[name];
     }
@@ -169,7 +169,7 @@ function Context(parent) {
     }
   };
 
-  this.set = function (name, value) {
+  this.set = function(name, value) {
     if (vars.hasOwnProperty(name)) {
       vars[name] = value;
     }
